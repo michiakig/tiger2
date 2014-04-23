@@ -1,0 +1,8 @@
+Library
+    structure Token
+is
+    ../lib/pos.cm
+    ../lib/show.cm
+    token.sml
+
+    $/basis.cm

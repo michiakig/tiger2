@@ -1,0 +1,8 @@
+Library
+    structure Show
+is
+    show.sml
+
+    $/basis.cm
+    $/smlnj-lib.cm
+

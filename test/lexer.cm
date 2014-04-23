@@ -1,0 +1,11 @@
+Library
+    structure Test
+is
+    ../lib/reader.cm
+    ../lib/pos.cm
+    ../lib/show.cm
+    ../src/lexer.cm
+    lexer.sml
+
+    $/basis.cm
+    $QCHECK/qcheck.cm

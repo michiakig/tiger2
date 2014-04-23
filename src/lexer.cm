@@ -1,0 +1,12 @@
+Library
+    signature LEXER
+    structure Lexer
+    structure Token
+is
+    ../lib/pos.cm
+    ../lib/reader.cm
+    token.cm
+    lexer.sml
+
+    $/basis.cm
+    $/smlnj-lib.cm

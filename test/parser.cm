@@ -1,0 +1,13 @@
+Library
+    structure Test
+is
+    ../lib/reader.cm
+    ../lib/pos.cm
+    ../lib/show.cm
+    ../src/appel/absyn.cm
+    ../src/lexer.cm
+    ../src/parser.cm
+    parser.sml
+
+    $/basis.cm
+    $QCHECK/qcheck.cm

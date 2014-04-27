@@ -11,6 +11,9 @@ end
 structure Parser =
 struct
 
+datatype ('a, 'b) result = Success of 'a * 'b | Error of string * 'b | EOF
+type ('a, 'b) t = 'b -> ('a, 'b) result
+
 exception Error (* of Pos.t * string *)
 exception NotImplemented
 
@@ -22,7 +25,11 @@ fun parseExp rdr s =
     case rdr s of
         SOME (T.Id (x, p), s') => SOME (A.VarExp (A.SimpleVar (S.symbol x, p)), s')
 
-fun parseIf rdr s =
+      | SOME (T.Nil p, s') => SOME (A.NilExp, s')
+
+      | SOME (T.If _, s') => parseIf rdr s
+
+and parseIf rdr s =
     case rdr s of
         SOME (T.If pos, s1) =>
         (case parseExp rdr s1 of
@@ -35,7 +42,11 @@ fun parseIf rdr s =
                             SOME (T.Else p1, s5) =>
                             (case parseExp rdr s5 of
                                  SOME (e3, s6) =>
-                                 A.IfExp {test = e1, then' = e2, else' = SOME e3, pos = pos}
+                                 SOME (A.IfExp {test = e1,
+                                                then' = e2,
+                                                else' = SOME e3,
+                                                pos = pos},
+                                       s6)
                                | NONE => raise Error)
                           | NONE => raise Error)
                      | NONE => raise Error)
@@ -44,9 +55,6 @@ fun parseIf rdr s =
       | NONE => raise Error
 
 fun make rdr =
-    fn s =>
-       case rdr s of
-
-           SOME (T.If p, s') => parseIf rdr s
+    fn s => parseExp rdr s
 
 end

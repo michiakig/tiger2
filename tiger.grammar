@@ -1,0 +1,52 @@
+Program -> Exp .
+
+Dec -> type TyId = Ty .
+Dec -> VarDec .
+Dec -> FunDec .
+
+# TyDec -> type TyId = Ty .
+Ty -> TyId .
+Ty -> ArrTy .
+Ty -> RecTy .
+
+# FieldDec -> Id : TyId .
+
+# FunDec -> function Id ( FieldDec* )        = Exp .
+FunDec -> function Id ( FieldDec* ) : TyId = Exp .
+
+FieldDec* -> Id : TyId FieldDec* .
+FieldDec*' -> .
+FieldDec*' -> , FieldDec .
+
+# VarDec -> var Id        := Exp .
+VarDec -> var Id : TyId := Exp .
+
+LValue -> Id .
+LValue -> LValue [ Exp ] .
+LValue -> LValue $ Id .
+
+Exp -> LValue .
+Exp -> nil .
+Exp -> IntLit .
+Exp -> StringLit .
+Exp -> ( Exp* ) .
+Exp -> - Exp .
+Exp -> Id ( Exp* ) .
+# Exp -> Exp InfixOp Exp .
+# Exp -> TyId [ Exp ] of Exp .
+# Exp -> TyId { FieldCreate* } .
+Exp -> LValue := Exp .
+Exp -> if Exp then Exp else Exp .
+# Exp -> if Exp then Exp .
+Exp -> while Exp do Exp .
+Exp -> for Id := Exp to Exp do Exp .
+Exp -> let Dec* in Exp* end .
+
+# FieldCreate -> Id = Exp .
+
+FieldCreate* -> Id = Exp FieldCreate*' .
+FieldCreate*' -> .
+FieldCreate*' -> , FieldCreate .
+
+Exp* -> Exp .
+Exp* -> Exp* ; Exp .

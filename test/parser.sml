@@ -33,5 +33,9 @@ fun test _ =
 
 , ("nil", A.NilExp)
 
+, ("while x do y",
+   A.WhileExp {test = A.VarExp (A.SimpleVar (x, p 6 1)),
+               body = A.VarExp (A.SimpleVar (y, p 11 1)),
+               pos = p 0 1})
           ]
 end

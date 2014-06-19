@@ -62,6 +62,8 @@ fun make rdr =
 
                 | SOME T.If => parseIf ()
 
+                | SOME T.While => parseWhile ()
+
           and parseIf () =
               let
                  val p  = getPos ()
@@ -76,6 +78,19 @@ fun make rdr =
                           then' = e2,
                           else' = SOME e3,
                           pos   = p}
+              end
+
+          and parseWhile () =
+              let
+                 val p = getPos()
+                 val _ = match T.While
+                 val e1 = parseExp ()
+                 val _ = match T.Do
+                 val e2 = parseExp ()
+              in
+                 A.WhileExp {test = e1,
+                             body = e2,
+                             pos  = p}
               end
        in
           SOME (parseExp (), !rest)

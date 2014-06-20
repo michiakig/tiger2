@@ -53,6 +53,13 @@ fun make rdr =
                   SOME t' => if t = t' then adv () else error (t, t')
                 | NONE    => eof ()
 
+          (* attempt to parse an identifier. consume and return it if successful *)
+          fun parseId () =
+              case peek () of
+                  SOME (T.Id id) => (adv (); id)
+                | SOME t         => raise (Error (getPos (), "expected Id, but got " ^ T.show t))
+                | NONE           => eof ()
+
           (* parser entry point *)
           fun parseExp () =
               case peek () of
@@ -63,6 +70,8 @@ fun make rdr =
                 | SOME T.If => parseIf ()
 
                 | SOME T.While => parseWhile ()
+
+                | SOME T.For => parseFor ()
 
           and parseIf () =
               let
@@ -91,6 +100,26 @@ fun make rdr =
                  A.WhileExp {test = e1,
                              body = e2,
                              pos  = p}
+              end
+
+          and parseFor () =
+              let
+                 val p  = getPos ()
+                 val _  = match T.For
+                 val x  = parseId ()
+                 val _  = match T.Assign
+                 val e1 = parseExp ()
+                 val _  = match T.To
+                 val e2 = parseExp ()
+                 val _  = match T.Do
+                 val e3 = parseExp ()
+              in
+                 A.ForExp {var    = S.symbol x,
+                           escape = ref true, (* ??? *)
+                           lo     = e1,
+                           hi     = e2,
+                           body   = e3,
+                           pos    = p}
               end
        in
           SOME (parseExp (), !rest)

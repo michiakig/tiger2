@@ -65,7 +65,7 @@ fun make rdr =
               case peek () of
                   SOME (T.Id x) => A.VarExp (A.SimpleVar (S.symbol x, getPos ())) before adv ()
 
-                | SOME T.Nil => A.NilExp before adv ()
+                | SOME T.Nil => (adv (); A.NilExp)
 
                 | SOME T.If => parseIf ()
 

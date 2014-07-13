@@ -1,15 +1,9 @@
 Library
-    structure Reader
-    structure Pos
-
-    signature LEXER
-    structure Lexer
-    structure Token
-
-    signature PARSER
-    structure Parser
+    structure Main
 is
-    lib/pos.cm
-    lib/reader.cm
-    src/lexer.cm
-    src/parser.cm
+    test/main.sml
+    test/lexer.cm
+    test/parser.cm
+
+    $/basis.cm
+    $QCHECK/qcheck.cm

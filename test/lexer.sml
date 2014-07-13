@@ -1,4 +1,4 @@
-structure Test =
+structure LexerTests =
 struct
 
 open QCheck

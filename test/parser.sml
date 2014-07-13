@@ -1,4 +1,4 @@
-structure Test =
+structure ParserTests =
 struct
 
 open QCheck

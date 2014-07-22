@@ -60,7 +60,7 @@ val symbols =
        , ("<",  T.Lt)
        , ("&",  T.And)
        , ("|",  T.Or)
-       , (":",  T.Comma)
+       , (":",  T.Colon)
        , (":=", T.Assign)
        , ("<>", T.Neq)
        , (">=", T.Geq)

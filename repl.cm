@@ -8,8 +8,13 @@ Library
 
     signature PARSER
     structure Parser
+
+    structure Absyn
+    structure Symbol
 is
     lib/pos.cm
     lib/reader.cm
     src/lexer.cm
     src/parser.cm
+
+    src/appel/absyn.cm

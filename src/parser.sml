@@ -56,7 +56,7 @@ fun make rdr =
           (* attempt to parse an identifier. consume and return it if successful *)
           fun parseId () =
               case peek () of
-                  SOME (T.Id id) => (adv (); id)
+                  SOME (T.Id id) => (adv (); S.symbol id)
                 | SOME t         => raise (Error (getPos (), "expected Id, but got " ^ T.show t))
                 | NONE           => eof ()
 
@@ -72,6 +72,8 @@ fun make rdr =
                 | SOME T.While => parseWhile ()
 
                 | SOME T.For => parseFor ()
+
+                | SOME T.Let => parseLet ()
 
           and parseIf () =
               let
@@ -91,7 +93,7 @@ fun make rdr =
 
           and parseWhile () =
               let
-                 val p = getPos()
+                 val p = getPos ()
                  val _ = match T.While
                  val e1 = parseExp ()
                  val _ = match T.Do
@@ -114,13 +116,66 @@ fun make rdr =
                  val _  = match T.Do
                  val e3 = parseExp ()
               in
-                 A.ForExp {var    = S.symbol x,
+                 A.ForExp {var    = x,
                            escape = ref true, (* ??? *)
                            lo     = e1,
                            hi     = e2,
                            body   = e3,
                            pos    = p}
               end
+
+          (* Exp -> let Dec* in Exp end . *)
+          and parseLet () =
+              let
+                 val p  = getPos ()
+                 val _  = match T.Let
+                 val ds = parseDecs ()
+                 val _  = match T.In
+                 val e  = parseExp ()
+                 val _  = match T.End
+              in
+                 A.LetExp {decs = ds, body = e, pos = p}
+              end
+
+          and parseDecs () =
+              let
+                 fun parseDecs' acc =
+                     case peek () of
+                         SOME T.Var => parseDecs' (parseVarDec () :: acc)
+                 (* | SOME T.Type      => () *)
+                 (* | SOME T.Function => () *)
+                       | _          => rev acc
+              in
+                 parseDecs' []
+              end
+
+          and parseDec () =
+              case peek () of
+                  SOME T.Var      => parseVarDec ()
+                (* | SOME T.Type      => () *)
+                (* | SOME T.Function => () *)
+
+(* TODO: make type annotations optional; *)
+(* # VarDec -> var Id        := Exp . *)
+(* VarDec -> var Id : TyId := Exp . *)
+          and parseVarDec () =
+              let
+                 val p  = getPos ()
+                 val _  = match T.Var
+                 val x  = parseId ()
+                 val _  = match T.Colon
+                 val p' = getPos ()
+                 val ty = parseId ()
+                 val _  = match T.Assign
+                 val e  = parseExp ()
+              in
+                 A.VarDec {name   = x,
+                           escape = ref true, (* ??? *)
+                           typ    = SOME (ty, p'),
+                           init   = e,
+                           pos    = p}
+              end
+
        in
           SOME (parseExp (), !rest)
        end

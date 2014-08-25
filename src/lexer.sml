@@ -12,20 +12,8 @@ struct
 
 structure T = Token
 
-exception Error of Pos.t * string
-
-fun compilerBug msg s = raise Error (Pos.getPos s, "compiler bug! " ^ msg)
-
-(* Pair utilities *)
 fun fst (a, _) = a
 fun snd (_, b) = b
-
-(* Drop leading whitespace from a stream *)
-fun skipWS rdr = Reader.dropWhile rdr Char.isSpace
-
-fun isDigit (x, _) = Char.isDigit x
-fun isPunct (x, _) = Char.isPunct x
-fun isValid x = Char.isAlphaNum x orelse x = #"_"
 
 structure Key = struct
    type ord_key = string
@@ -33,12 +21,23 @@ structure Key = struct
 end
 structure Map : ORD_MAP = BinaryMapFn(Key)
 
-(* fold a list of keys, vals into a new map *)
+exception Error of Pos.t * string
+fun compilerBug msg s = raise Error (Pos.getPos s, "compiler bug! " ^ msg)
+
+(* Predicates for stream elements *)
+fun isSpace (x, _) = Char.isSpace x
+fun isDigit (x, _) = Char.isDigit x
+fun isPunct (x, _) = Char.isPunct x
+fun isValid x = Char.isAlphaNum x orelse x = #"_"
+
+(* Drop leading whitespace from a stream *)
+fun skipWS rdr = Reader.dropWhile rdr Char.isSpace
+
+(* Fold a list of pairs of keys and values into a new map *)
 fun collect l =
     List.foldl (fn ((k, v), acc) => Map.insert (acc, k, v)) Map.empty l
 
-(* maps from raw token values to Token.t ctors *)
-
+(* Map from raw token values to Token.t ctors *)
 val symbols =
     collect
        [
@@ -91,10 +90,10 @@ val keywords =
        , ("while",    T.While)
        ]
 
-(* extract chars from a stream that match a predicate *)
-fun get rdr isValid s =
+(* Extract chars from a stream that match a predicate *)
+fun get rdr p s =
     let
-       val (chars, s') = Reader.takeWhile rdr isValid s
+       val (chars, s') = Reader.takeWhile rdr p s
     in
        if length chars < 1 then
           NONE
@@ -102,7 +101,7 @@ fun get rdr isValid s =
           SOME (String.implode chars, s')
     end
 
-(* extract an integer literal from a positional stream *)
+(* Extract an integer literal from a positional stream *)
 fun getInt rdr s =
     case get rdr Char.isDigit s of
         NONE => NONE
@@ -111,7 +110,7 @@ fun getInt rdr s =
             NONE => compilerBug ("could not convert string to int: " ^ i) s
           | SOME i => SOME (T.Int i, skipWS rdr s')
 
-(* extract a keyword or identifier from a positional stream *)
+(* Extract a keyword or identifier from a positional stream *)
 fun getWord rdr s =
     let
        fun isValid x = Char.isAlphaNum x orelse x = #"_"
@@ -124,7 +123,7 @@ fun getWord rdr s =
              | SOME ctor => SOME (ctor, skipWS rdr s')
     end
 
-(* extract a symbol from a positional stream *)
+(* Extract a symbol from a positional stream *)
 fun getSymbol rdr s =
     case get rdr Char.isPunct s of
         NONE => NONE
@@ -133,6 +132,7 @@ fun getSymbol rdr s =
             NONE => NONE
           | SOME ctor => SOME (ctor, skipWS rdr s')
 
+(* Given a char reader, return a token reader (lexer) *)
 fun make rdr =
     fn s =>
        let

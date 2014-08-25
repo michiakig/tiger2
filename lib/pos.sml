@@ -1,5 +1,5 @@
 (* Pos.sml: datatype for storing line and column position in a file.
- * 27 April 2014 v0.4 *)
+ * 25 August 2014 v0.5 *)
 
 signature POS =
 sig
@@ -31,9 +31,10 @@ sig
    val getPos: 'a * t -> t
 
    (* Given a char reader, return a positional char reader *)
-   val reader: (char, 'a) Reader.t -> (char, 'a * t) Reader.t
+   val reader: (char, 'a) Reader.t -> (char * t, 'a * t) Reader.t
 
    val show: t -> string
+   val eq: t * t -> bool
 end
 
 structure Pos =
@@ -60,10 +61,11 @@ struct
        fn (s, p) =>
           case rdr s of
               NONE            => NONE
-            | SOME (#"\n", t) => SOME (#"\n", (t, incrLine p))
-            | SOME (x,     t) => SOME (x,     (t, incrCol  p))
+            | SOME (#"\n", t) => SOME ((#"\n", p), (t, incrLine p))
+            | SOME (x,     t) => SOME ((x,     p), (t, incrCol  p))
 
    fun show {col, line} = Int.toString line ^ ":" ^ Int.toString col
+   fun eq ({col, line}, {col=c, line=l}) = col = c andalso line = l
 end
 
 (* structure Pos :> POS = Pos *)

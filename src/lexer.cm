@@ -3,8 +3,10 @@ Library
     structure Lexer
     structure Token
 is
+    top.cm
     ../lib/pos.cm
     ../lib/reader.cm
+
     token.cm
     lexer.sml
 

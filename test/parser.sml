@@ -6,7 +6,7 @@ structure P = Parser
 structure A = Absyn
 
 fun p x y = Pos.new (x, y)
-val lexer = Lexer.make (Pos.reader Reader.string)
+val lexer = Lexer.make (Pos.reader2 Reader.string)
 local
    fun parse' s = P.make lexer (Pos.stream s)
 in
@@ -61,6 +61,16 @@ fun test _ =
             pos = p 0 1})
 
 , ("x", A.VarExp (A.SimpleVar (x, p 0 1)))
+
+(* test whitespace interleaved in expression: *)
+, ("if    x then y else z",
+   A.IfExp {test = A.VarExp (A.SimpleVar (x, p 6 1)),
+            then' = A.VarExp (A.SimpleVar (y, p 13 1)),
+            else' = SOME (A.VarExp (A.SimpleVar (z, p 20 1))),
+            pos = p 0 1})
+
+(* test whitespace preceding expression: *)
+, ("   x", A.VarExp (A.SimpleVar (x, p 3 1)))
 
 , ("nil", A.NilExp)
 

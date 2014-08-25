@@ -1,25 +1,14 @@
 signature LEXER =
 sig
-
    exception Error of Pos.t * string
-
-   val make: (char, 'a * Pos.t) Reader.t -> (Token.t, 'a * Pos.t) Reader.t
-
+   val make: (char * Pos.t, 'a * Pos.t) Reader.t -> (Token.t * Pos.t, 'a * Pos.t) Reader.t
 end
 
 structure Lexer =
 struct
 
+open Top
 structure T = Token
-
-fun fst (a, _) = a
-fun snd (_, b) = b
-
-structure Key = struct
-   type ord_key = string
-   val compare = String.compare
-end
-structure Map : ORD_MAP = BinaryMapFn(Key)
 
 exception Error of Pos.t * string
 fun compilerBug msg s = raise Error (Pos.getPos s, "compiler bug! " ^ msg)
@@ -28,14 +17,14 @@ fun compilerBug msg s = raise Error (Pos.getPos s, "compiler bug! " ^ msg)
 fun isSpace (x, _) = Char.isSpace x
 fun isDigit (x, _) = Char.isDigit x
 fun isPunct (x, _) = Char.isPunct x
-fun isValid x = Char.isAlphaNum x orelse x = #"_"
+fun isValid (x, _) = Char.isAlphaNum x orelse x = #"_"
 
 (* Drop leading whitespace from a stream *)
-fun skipWS rdr = Reader.dropWhile rdr Char.isSpace
+fun skipWS rdr = Reader.dropWhile rdr isSpace
 
 (* Fold a list of pairs of keys and values into a new map *)
 fun collect l =
-    List.foldl (fn ((k, v), acc) => Map.insert (acc, k, v)) Map.empty l
+    List.foldl (fn ((k, v), acc) => StringMap.insert (acc, k, v)) StringMap.empty l
 
 (* Map from raw token values to Token.t ctors *)
 val symbols =
@@ -92,45 +81,36 @@ val keywords =
 
 (* Extract chars from a stream that match a predicate *)
 fun get rdr p s =
-    let
-       val (chars, s') = Reader.takeWhile rdr p s
-    in
-       if length chars < 1 then
-          NONE
-       else
-          SOME (String.implode chars, s')
-    end
+    case Reader.takeWhile rdr p s of
+        ([], _)                  => NONE
+      | (chars as ((_, p)::_), t) => SOME ((String.implode (map fst chars), p), t)
 
 (* Extract an integer literal from a positional stream *)
 fun getInt rdr s =
-    case get rdr Char.isDigit s of
+    case get rdr isDigit s of
         NONE => NONE
-      | SOME (i, s') =>
+      | SOME ((i, p), s') =>
         case Int.fromString i of
             NONE => compilerBug ("could not convert string to int: " ^ i) s
-          | SOME i => SOME (T.Int i, skipWS rdr s')
+          | SOME i => SOME ((T.Int i, p), skipWS rdr s')
 
 (* Extract a keyword or identifier from a positional stream *)
 fun getWord rdr s =
-    let
-       fun isValid x = Char.isAlphaNum x orelse x = #"_"
-    in
-       case get rdr isValid s of
-           NONE => NONE
-         | SOME (token, s') =>
-           case Map.find (keywords, token) of
-               NONE => SOME (T.Id token, skipWS rdr s')
-             | SOME ctor => SOME (ctor, skipWS rdr s')
-    end
+    case get rdr isValid s of
+        NONE => NONE
+      | SOME ((tok, p), s') =>
+        case StringMap.find (keywords, tok) of
+            NONE      => SOME ((T.Id tok, p), skipWS rdr s')
+          | SOME ctor => SOME ((ctor,     p), skipWS rdr s')
 
 (* Extract a symbol from a positional stream *)
 fun getSymbol rdr s =
-    case get rdr Char.isPunct s of
+    case get rdr isPunct s of
         NONE => NONE
-      | SOME (token, s') =>
-        case Map.find (symbols, token) of
-            NONE => NONE
-          | SOME ctor => SOME (ctor, skipWS rdr s')
+      | SOME ((tok, p), s') =>
+        case StringMap.find (symbols, tok) of
+            NONE      => NONE
+          | SOME ctor => SOME ((ctor, p), skipWS rdr s')
 
 (* Given a char reader, return a token reader (lexer) *)
 fun make rdr =
@@ -140,7 +120,7 @@ fun make rdr =
        in
           case rdr s of
               NONE => NONE
-            | SOME (ch, s') =>
+            | SOME ((ch, _), s') =>
               if Char.isPunct ch then
                  getSymbol rdr s
               else if Char.isDigit ch then
@@ -154,30 +134,30 @@ functor TestInternal () =
 struct
    structure T = Token
 
-   val rdr = Pos.reader Reader.string
+   val rdr = Pos.reader2 Reader.string
    val s = Pos.stream "123 foo"
 
-   val SOME (T.Int 123, (" foo", _)) = Lexer.getInt rdr s
+   val SOME ((T.Int 123, _), ("foo", _)) = Lexer.getInt rdr s
 
    val s = Pos.stream "if x then y else z"
-   val SOME (T.If, _) = Lexer.getWord rdr s
+   val SOME ((T.If, _), _) = Lexer.getWord rdr s
 
    val s = Pos.stream ":=123"
-   val SOME (T.Assign, _) = Lexer.getSymbol rdr s
-
+   val SOME ((T.Assign, _), _) = Lexer.getSymbol rdr s
 end
 
 structure Lexer :> LEXER = Lexer
 
 functor TestExternal () =
 struct
+   open Top
    structure T = Token
 
-   val rdr = Pos.reader Reader.string
-   val s = Pos.stream "if x then y else z"
+   val rdr = Pos.reader2 Reader.string
+   val s   = Pos.stream "if x then y else z"
    val lex = Lexer.make rdr
 
-   val [T.If, T.Id "x", T.Then, T.Id "y", T.Else, T.Id "z"] = Reader.consume lex s
+   val [T.If, T.Id "x", T.Then, T.Id "y", T.Else, T.Id "z"] = map fst (Reader.consume lex s)
 end
 
 functor Test () =

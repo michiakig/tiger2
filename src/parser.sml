@@ -1,11 +1,8 @@
 signature PARSER =
 sig
-
    exception Error of Pos.t * string
-
    (* TODO: should return Absyn.dec ? union of exp, dec fundec ? *)
    val make: (Token.t * Pos.t, 'a) Reader.t -> (Absyn.exp, 'a) Reader.t
-
 end
 
 structure Parser =
@@ -29,7 +26,9 @@ fun make rdr =
           (* local mutable pointer to current position in stream *)
           val rest = ref s
 
-          fun getPos () = Pos.getPos (!rest)
+          fun getPos () =
+              case rdr (!rest) of
+                  SOME ((_, p), _) => p
 
           (* raise exceptions for syntax (i.e. user) errors *)
           fun error (t, t') = raise (Error (getPos (), "expected " ^ T.show t ^ ", but got " ^ T.show t'))
@@ -38,8 +37,8 @@ fun make rdr =
           (* get next token, if present *)
           fun peek () =
               case rdr (!rest) of
-                  SOME (x, _) => SOME x
-                | NONE        => NONE
+                  SOME ((x, _), _) => SOME x
+                | NONE             => NONE
 
           (* consume the next token. if already at EOF, do nothing *)
           fun adv () =

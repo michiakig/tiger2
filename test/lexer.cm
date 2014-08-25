@@ -1,8 +1,13 @@
 Library
+    structure Pos
+    structure Reader
+
+    structure Lexer
     structure LexerTests
 is
     ../lib/reader.cm
     ../lib/pos.cm
+    ../lib/eq.cm
     ../lib/show.cm
     ../src/lexer.cm
     lexer.sml

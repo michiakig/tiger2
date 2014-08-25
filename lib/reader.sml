@@ -1,6 +1,6 @@
 (* Reader.sml: collection of readers and functions on readers and streams
  * See http://spacemanaki.com/blog/2013/08/31/Polymorphic-streams-in-ML/
- * 16 Sept 2013 v0.1 *)
+ * 25 Aug 2014 v0.2 *)
 
 structure Reader =
 struct
@@ -69,5 +69,34 @@ fun dropWhile rdr p s =
     in
        dropWhile' s
     end
+
+fun take (rdr : ('a,'b) t) (n : int) (s : 'b) : ('a list * 'b) option =
+    let
+       fun take' 0 acc s = SOME (rev acc, s)
+         | take' n acc s =
+           case rdr s of
+               SOME (x, s') => take' (n-1) (x::acc) s'
+             | NONE => NONE
+    in
+       take' n [] s
+    end
+
+fun drop (rdr : ('a,'b) t) (n : int) (s : 'b) : 'b =
+    let
+       fun drop' 0 s = s
+         | drop' n s =
+           case rdr s of
+               SOME (_, s') => drop' (n-1) s'
+             | NONE => s
+    in
+       drop' n s
+    end
+
+exception Partial
+
+fun partial rdr s =
+    case rdr s of
+        SOME (x, _) => x
+      | NONE        => raise Partial
 
 end

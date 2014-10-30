@@ -6,7 +6,7 @@ structure P = Parser
 structure A = Absyn
 
 fun p x y = Pos.new (x, y)
-val lexer = Lexer.make (Pos.reader2 Reader.string)
+val lexer = Lexer.make (Pos.reader Reader.string)
 local
    fun parse' s = P.make lexer (Pos.stream s)
 in

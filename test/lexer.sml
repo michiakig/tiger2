@@ -7,7 +7,7 @@ structure L = Lexer
 
 fun ` c l = Pos.new (c, l)
 
-fun tokenize s = Reader.consume (L.make (Pos.reader2 Reader.string)) (Pos.stream s)
+fun tokenize s = Reader.consume (L.make (Pos.reader Reader.string)) (Pos.stream s)
 fun predicate (s, ts) = ListPair.allEq (Eq.pair (T.eq, Pos.eq)) (tokenize s, ts)
 val show = Show.pair (fn x => x, Show.list (Show.pair (T.show, Pos.show)))
 

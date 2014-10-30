@@ -130,38 +130,38 @@ fun make rdr =
        end
 end
 
-(* functor TestInternal () = *)
-(* struct *)
-(*    structure T = Token *)
+functor TestInternal () =
+struct
+   structure T = Token
 
-(*    val rdr = Pos.reader2 Reader.string *)
-(*    val s = Pos.stream "123 foo" *)
+   val rdr = Pos.reader Reader.string
+   val s = Pos.stream "123 foo"
 
-(*    val SOME ((T.Int 123, _), ("foo", _)) = Lexer.getInt rdr s *)
+   val SOME ((T.Int 123, _), ("foo", _)) = Lexer.getInt rdr s
 
-(*    val s = Pos.stream "if x then y else z" *)
-(*    val SOME ((T.If, _), _) = Lexer.getWord rdr s *)
+   val s = Pos.stream "if x then y else z"
+   val SOME ((T.If, _), _) = Lexer.getWord rdr s
 
-(*    val s = Pos.stream ":=123" *)
-(*    val SOME ((T.Assign, _), _) = Lexer.getSymbol rdr s *)
-(* end *)
+   val s = Pos.stream ":=123"
+   val SOME ((T.Assign, _), _) = Lexer.getSymbol rdr s
+end
 
-(* structure Lexer :> LEXER = Lexer *)
+structure Lexer :> LEXER = Lexer
 
-(* functor TestExternal () = *)
-(* struct *)
-(*    open Top *)
-(*    structure T = Token *)
+functor TestExternal () =
+struct
+   open Top
+   structure T = Token
 
-(*    val rdr = Pos.reader2 Reader.string *)
-(*    val s   = Pos.stream "if x then y else z" *)
-(*    val lex = Lexer.make rdr *)
+   val rdr = Pos.reader Reader.string
+   val s   = Pos.stream "if x then y else z"
+   val lex = Lexer.make rdr
 
-(*    val [T.If, T.Id "x", T.Then, T.Id "y", T.Else, T.Id "z"] = map fst (Reader.consume lex s) *)
-(* end *)
+   val [T.If, T.Id "x", T.Then, T.Id "y", T.Else, T.Id "z"] = map fst (Reader.consume lex s)
+end
 
-(* functor Test () = *)
-(* struct *)
-(*    structure Z = TestInternal () *)
-(*    structure Z = TestExternal () *)
-(* end *)
+functor Test () =
+struct
+   structure Z = TestInternal ()
+   structure Z = TestExternal ()
+end

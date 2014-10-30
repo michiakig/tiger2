@@ -68,49 +68,51 @@ struct
    fun eq ({col, line}, {col=c, line=l}) = col = c andalso line = l
 end
 
-(* structure Pos :> POS = Pos *)
+structure Pos :> POS = Pos
 
-(* functor Test () = struct *)
-(*    local *)
-(*       open Pos *)
-(*    in *)
+functor Test () = struct
+   local
+      open Pos
+   in
 
-(*    val 0 = col  zero *)
-(*    val 1 = line zero *)
+   val 0 = col  zero
+   val 1 = line zero
 
-(*    val 1 = col  (incrCol  zero) *)
-(*    val 2 = line (incrLine zero) *)
+   val 1 = col  (incrCol  zero)
+   val 2 = line (incrLine zero)
 
-(*    val 0 = col  (incrLine zero) *)
-(*    val 0 = col  (incrLine (incrCol zero)) *)
+   val 0 = col  (incrLine zero)
+   val 0 = col  (incrLine (incrCol zero))
 
-(*    val rdr = reader Substring.getc *)
+   val rdr = reader Substring.getc
 
-(*    (* A fresh positional stream starts at col=0 line=1. *) *)
-(*    val s = stream (Substring.full "foo") *)
-(*    val 0 = col  (getPos s) *)
-(*    val 1 = line (getPos s) *)
+   (* A fresh positional stream starts at col=0 line=1. *)
+   val s = stream (Substring.full "foo")
+   val 0 = col  (getPos s)
+   val 1 = line (getPos s)
 
-(*    (* After consuming one char, col incremented by one *) *)
-(*    val SOME (#"f", (t, p)) = rdr s *)
-(*    val 1 = col  p *)
-(*    val 1 = line p *)
+   (* After consuming one char, col incremented by one *)
+   val SOME ((#"f", p), (t, p')) = rdr s
+   val 0 = col  p
+   val 1 = line p
+   val 1 = col  p'
+   val 1 = line p'
 
-(*    (* After consuming past a newline, col reset, line advanced *) *)
-(*    val SOME (_, s) = rdr (stream (Substring.full "x\ny")) *)
-(*    val SOME (#"\n", s as (_, p)) = rdr s *)
-(*    val 0 = col  p *)
-(*    val 2 = line p *)
+   (* After consuming past a newline, col reset, line advanced *)
+   val SOME (_, s) = rdr (stream (Substring.full "x\ny"))
+   val SOME ((#"\n", _), s as (_, p)) = rdr s
+   val 0 = col  p
+   val 2 = line p
 
-(*    val SOME (#"y", s as (_, p)) = rdr s *)
-(*    val 1 = col  p *)
-(*    val 2 = line p *)
+   val SOME ((#"y", _), s as (_, p)) = rdr s
+   val 1 = col  p
+   val 2 = line p
 
-(*    val 3 = line (new (4, 3)) *)
-(*    val 4 = col (new (4, 3)) *)
+   val 3 = line (new (4, 3))
+   val 4 = col (new (4, 3))
 
-(*    val 5 = col (advCol (zero, 5)) *)
-(*    val 4 = line (advLine (zero, 3)) *)
+   val 5 = col (advCol (zero, 5))
+   val 4 = line (advLine (zero, 3))
 
-(*    end *)
-(* end *)
+   end
+end
